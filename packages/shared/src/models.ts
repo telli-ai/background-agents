@@ -106,7 +106,7 @@ export const MODEL_OPTIONS: ModelCategory[] = [
       {
         id: "anthropic/claude-opus-4-6",
         name: "Claude Opus 4.6",
-        description: "Latest, most capable",
+        description: "Previous flagship, highly capable",
       },
       {
         id: "anthropic/claude-opus-4-7",
