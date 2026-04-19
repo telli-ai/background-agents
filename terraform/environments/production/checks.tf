@@ -16,8 +16,8 @@ check "access_controls_configured" {
   assert {
     condition = (
       var.unsafe_allow_all_users ||
-      length(trimspace(var.allowed_users)) > 0 ||
-      length(trimspace(var.allowed_email_domains)) > 0
+      length([for item in split(",", var.allowed_users) : trimspace(item) if trimspace(item) != ""]) > 0 ||
+      length([for item in split(",", var.allowed_email_domains) : trimspace(item) if trimspace(item) != ""]) > 0
     )
     error_message = "At least one access control allowlist must be configured. Set allowed_users or allowed_email_domains, or set unsafe_allow_all_users = true to explicitly allow all authenticated GitHub users."
   }
