@@ -275,6 +275,7 @@ export type ClientMessage =
       type: "prompt";
       content: string;
       model?: string;
+      agent?: string;
       reasoningEffort?: string;
       attachments?: Attachment[];
     }

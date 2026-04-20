@@ -592,6 +592,7 @@ class AgentBridge:
         message_id = cmd.get("messageId") or cmd.get("message_id", "unknown")
         content = cmd.get("content", "")
         model = cmd.get("model")
+        agent = cmd.get("agent")
         reasoning_effort = cmd.get("reasoningEffort")
         author_data = cmd.get("author", {})
         start_time = time.time()
@@ -601,6 +602,7 @@ class AgentBridge:
             "prompt.start",
             message_id=message_id,
             model=model,
+            agent=agent,
             reasoning_effort=reasoning_effort,
         )
 
@@ -620,7 +622,7 @@ class AgentBridge:
             had_error = False
             error_message = None
             async for event in self._stream_opencode_response_sse(
-                message_id, content, model, reasoning_effort
+                message_id, content, model, reasoning_effort, agent
             ):
                 if event.get("type") == "error":
                     had_error = True
@@ -656,11 +658,75 @@ class AgentBridge:
                 "prompt.run",
                 message_id=message_id,
                 model=model,
+                agent=agent,
                 reasoning_effort=reasoning_effort,
                 outcome=outcome,
                 duration_ms=duration_ms,
             )
 
+<<<<<<< Updated upstream
+=======
+    async def _handle_list_agents(self, cmd: dict[str, Any]) -> None:
+        request_id = cmd.get("requestId")
+        if not request_id:
+            return
+
+        if not self.http_client:
+            await self._send_event(
+                {
+                    "type": "agents_list",
+                    "requestId": request_id,
+                    "error": "OpenCode client not initialized",
+                }
+            )
+            return
+
+        try:
+            response = await self.http_client.get(
+                f"{self.opencode_base_url}/agent",
+                timeout=self.OPENCODE_REQUEST_TIMEOUT,
+            )
+            response.raise_for_status()
+            payload = response.json()
+            agents = []
+            if isinstance(payload, list):
+                for agent in payload:
+                    if not isinstance(agent, dict):
+                        continue
+                    if agent.get("hidden") is True:
+                        continue
+                    agent_id = agent.get("id")
+                    if not isinstance(agent_id, str) or not agent_id:
+                        agent_id = agent.get("name")
+                    if not isinstance(agent_id, str) or not agent_id:
+                        continue
+                    name = agent.get("name") if isinstance(agent.get("name"), str) else agent_id
+                    description = agent.get("description")
+                    agents.append(
+                        {
+                            "id": agent_id,
+                            "name": name,
+                            "description": description if isinstance(description, str) else None,
+                        }
+                    )
+
+            await self._send_event(
+                {
+                    "type": "agents_list",
+                    "requestId": request_id,
+                    "agents": agents,
+                }
+            )
+        except Exception as e:
+            await self._send_event(
+                {
+                    "type": "agents_list",
+                    "requestId": request_id,
+                    "error": str(e),
+                }
+            )
+
+>>>>>>> Stashed changes
     async def _create_opencode_session(self) -> None:
         """Create a new OpenCode session."""
         if not self.http_client:
@@ -766,6 +832,7 @@ class AgentBridge:
         self,
         content: str,
         model: str | None,
+        agent: str | None = None,
         opencode_message_id: str | None = None,
         reasoning_effort: str | None = None,
     ) -> dict[str, Any]:
@@ -783,6 +850,9 @@ class AgentBridge:
 
         if opencode_message_id:
             request_body["messageID"] = opencode_message_id
+
+        if agent:
+            request_body["agent"] = agent
 
         if model:
             if "/" in model:
@@ -870,6 +940,7 @@ class AgentBridge:
         content: str,
         model: str | None = None,
         reasoning_effort: str | None = None,
+        agent: str | None = None,
     ) -> AsyncIterator[dict[str, Any]]:
         """Stream response from OpenCode using Server-Sent Events.
 
@@ -890,7 +961,7 @@ class AgentBridge:
 
         opencode_message_id = OpenCodeIdentifier.ascending("message")
         request_body = self._build_prompt_request_body(
-            content, model, opencode_message_id, reasoning_effort
+            content, model, agent, opencode_message_id, reasoning_effort
         )
 
         sse_url = f"{self.opencode_base_url}/event"

@@ -932,6 +932,7 @@ async function handleSessionPrompt(
     authorId?: string;
     source?: string;
     model?: string;
+    agent?: string;
     reasoningEffort?: string;
     attachments?: Array<{ type: string; name: string; url?: string }>;
     callbackContext?: CallbackContext;
@@ -955,6 +956,7 @@ async function handleSessionPrompt(
           authorId: body.authorId || "anonymous",
           source: body.source || "web",
           model: body.model,
+          agent: body.agent,
           reasoningEffort: body.reasoningEffort,
           attachments: body.attachments,
           callbackContext: body.callbackContext,

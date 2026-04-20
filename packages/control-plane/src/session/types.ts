@@ -120,6 +120,7 @@ export interface PromptCommand {
   messageId: string;
   content: string;
   model?: string; // LLM model for per-message override
+  agent?: string; // OpenCode agent for per-message override
   reasoningEffort?: string; // Reasoning effort level
   author: {
     userId: string;

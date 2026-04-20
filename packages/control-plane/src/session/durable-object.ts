@@ -1292,6 +1292,7 @@ export class SessionDO extends DurableObject<Env> {
     data: {
       content: string;
       model?: string;
+      agent?: string;
       reasoningEffort?: string;
       attachments?: Array<{ type: string; name: string; url?: string; content?: string }>;
     }
