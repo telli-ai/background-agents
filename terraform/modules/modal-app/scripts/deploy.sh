@@ -42,11 +42,6 @@ fi
 
 MODAL_CMD=(uv run modal)
 
-if ! uv run python -c "import sandbox_runtime" >/dev/null 2>&1; then
-    echo "Error: modal-infra dependencies are not installed. Run 'cd packages/modal-infra && uv sync --frozen --extra dev'."
-    exit 1
-fi
-
 # Deploy using Modal CLI
 if [ "${DEPLOY_MODULE}" = "deploy" ]; then
     # Method 1: Use deploy.py wrapper (recommended)
