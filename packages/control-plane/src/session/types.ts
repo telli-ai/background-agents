@@ -152,13 +152,19 @@ export interface PushCommand {
   pushSpec: GitPushSpec;
 }
 
+export interface ListAgentsCommand {
+  type: "list_agents";
+  requestId: string;
+}
+
 export type SandboxCommand =
   | PromptCommand
   | StopCommand
   | SnapshotCommand
   | ShutdownCommand
   | AckCommand
-  | PushCommand;
+  | PushCommand
+  | ListAgentsCommand;
 
 // Internal session update types
 

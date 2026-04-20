@@ -59,6 +59,21 @@ export default function Home() {
   const selectedRepoOwner = selectedRepo.split("/")[0] ?? "";
   const selectedRepoName = selectedRepo.split("/")[1] ?? "";
   const { branches, loading: loadingBranches } = useBranches(selectedRepoOwner, selectedRepoName);
+  const { data: cachedAgentsData } = useSWR<{ agents: AvailableAgent[] }>(
+    selectedRepoOwner && selectedRepoName && selectedBranch
+      ? `/api/repos/${encodeURIComponent(selectedRepoOwner)}/${encodeURIComponent(selectedRepoName)}/agents?branch=${encodeURIComponent(selectedBranch)}`
+      : null,
+    (url: string) =>
+      fetch(url).then(async (response) => {
+        if (!response.ok) {
+          return { agents: [] };
+        }
+        return response.json();
+      }),
+    {
+      revalidateOnFocus: false,
+    }
+  );
   const { data: agentsData } = useSWR<{ agents: AvailableAgent[] }>(
     pendingSessionId ? `/api/sessions/${pendingSessionId}/agents` : null,
     (url: string) =>
@@ -73,8 +88,10 @@ export default function Home() {
       refreshInterval: pendingSessionId ? 2000 : 0,
     }
   );
-  const availableAgents = agentsData?.agents ?? [];
-  const hasFetchedAgents = agentsData !== undefined;
+  const liveAgents = agentsData?.agents ?? [];
+  const cachedAgents = cachedAgentsData?.agents ?? [];
+  const availableAgents = liveAgents.length > 0 ? liveAgents : cachedAgents;
+  const hasFetchedAgents = agentsData !== undefined || cachedAgentsData !== undefined;
   // Auto-select repo when repos load
   useEffect(() => {
     if (repos.length > 0 && !selectedRepo) {

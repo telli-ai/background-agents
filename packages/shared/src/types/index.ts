@@ -101,6 +101,11 @@ export interface Attachment {
   mimeType?: string;
 }
 
+export interface AvailableAgent {
+  name: string;
+  description?: string | null;
+}
+
 // Agent event
 export interface AgentEvent {
   id: string;

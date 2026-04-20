@@ -32,7 +32,7 @@ export function AgentPicker({
   const agents =
     availableAgents.length > 0
       ? availableAgents
-      : [{ id: "build", name: "build", description: "Default agent" }];
+      : [{ name: "build", description: "Default agent" }];
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

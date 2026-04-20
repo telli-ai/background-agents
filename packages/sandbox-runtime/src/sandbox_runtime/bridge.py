@@ -578,6 +578,8 @@ class AgentBridge:
             self.git_sync_complete.set()
         elif cmd_type == "push":
             await self._handle_push(cmd)
+        elif cmd_type == "list_agents":
+            await self._handle_list_agents(cmd)
         elif cmd_type == "ack":
             ack_id = cmd.get("ackId")
             if ack_id and ack_id in self._pending_acks:
@@ -664,8 +666,6 @@ class AgentBridge:
                 duration_ms=duration_ms,
             )
 
-<<<<<<< Updated upstream
-=======
     async def _handle_list_agents(self, cmd: dict[str, Any]) -> None:
         request_id = cmd.get("requestId")
         if not request_id:
@@ -695,16 +695,12 @@ class AgentBridge:
                         continue
                     if agent.get("hidden") is True:
                         continue
-                    agent_id = agent.get("id")
-                    if not isinstance(agent_id, str) or not agent_id:
-                        agent_id = agent.get("name")
-                    if not isinstance(agent_id, str) or not agent_id:
+                    name = agent.get("name")
+                    if not isinstance(name, str) or not name:
                         continue
-                    name = agent.get("name") if isinstance(agent.get("name"), str) else agent_id
                     description = agent.get("description")
                     agents.append(
                         {
-                            "id": agent_id,
                             "name": name,
                             "description": description if isinstance(description, str) else None,
                         }
@@ -725,8 +721,6 @@ class AgentBridge:
                     "error": str(e),
                 }
             )
-
->>>>>>> Stashed changes
     async def _create_opencode_session(self) -> None:
         """Create a new OpenCode session."""
         if not self.http_client:
