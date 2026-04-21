@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import useSWR from "swr";
 import {
+  type AvailableAgent,
   DEFAULT_MODEL,
   getReasoningConfig,
   isValidCron,
@@ -17,6 +19,7 @@ import { useBranches } from "@/hooks/use-branches";
 import { useEnabledModels } from "@/hooks/use-enabled-models";
 import { formatModelNameLower } from "@/lib/format";
 import { Combobox, type ComboboxGroup } from "@/components/ui/combobox";
+import { AgentPicker } from "@/components/agent-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -66,6 +69,7 @@ export interface AutomationFormValues {
   repoName: string;
   baseBranch: string;
   model: string;
+  agent: string | null;
   reasoningEffort: string | null;
   scheduleCron: string;
   scheduleTz: string;
@@ -98,6 +102,7 @@ export function AutomationForm({ mode, initialValues, onSubmit, submitting }: Au
   const { branches, loading: loadingBranches } = useBranches(repoOwner, repoName);
   const [baseBranch, setBaseBranch] = useState(initialValues?.baseBranch ?? "");
   const [model, setModel] = useState(initialValues?.model ?? DEFAULT_MODEL);
+  const [agent, setAgent] = useState(initialValues?.agent ?? "build");
   const [reasoningEffort, setReasoningEffort] = useState(initialValues?.reasoningEffort ?? "");
   const [scheduleCron, setScheduleCron] = useState(initialValues?.scheduleCron ?? "0 9 * * *");
   const [scheduleTz, setScheduleTz] = useState(
@@ -112,6 +117,19 @@ export function AutomationForm({ mode, initialValues, onSubmit, submitting }: Au
     initialValues?.triggerConfig?.conditions ?? []
   );
   const [sentryClientSecret, setSentryClientSecret] = useState("");
+  const { data: cachedAgentsData } = useSWR<{ agents: AvailableAgent[] }>(
+    repoOwner && repoName && baseBranch
+      ? `/api/repos/${encodeURIComponent(repoOwner)}/${encodeURIComponent(repoName)}/agents?branch=${encodeURIComponent(baseBranch)}`
+      : null,
+    (url: string) =>
+      fetch(url).then(async (response) => {
+        if (!response.ok) return { agents: [] };
+        return response.json();
+      }),
+    { revalidateOnFocus: false }
+  );
+  const availableAgents = cachedAgentsData?.agents ?? [];
+  const hasFetchedAgents = cachedAgentsData !== undefined;
 
   const isSchedule = triggerType === "schedule";
   const isScheduleValid = !isSchedule || isValidCron(scheduleCron);
@@ -142,6 +160,7 @@ export function AutomationForm({ mode, initialValues, onSubmit, submitting }: Au
       repoName,
       baseBranch,
       model,
+      agent,
       reasoningEffort: reasoningEffort || null,
       scheduleCron,
       scheduleTz,
@@ -296,6 +315,19 @@ export function AutomationForm({ mode, initialValues, onSubmit, submitting }: Au
           <span className="truncate flex-1 text-left">{formatModelNameLower(model)}</span>
           <ChevronDownIcon className="w-3 h-3 text-muted-foreground" />
         </Combobox>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-foreground mb-1">Agent</label>
+        <div className="flex w-full items-center justify-between rounded-md border border-border bg-input px-3 py-2">
+          <AgentPicker
+            selectedAgent={agent}
+            onSelect={setAgent}
+            availableAgents={availableAgents}
+            hasFetchedAgents={hasFetchedAgents}
+            disabled={submitting}
+          />
+        </div>
       </div>
 
       <div>

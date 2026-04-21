@@ -612,6 +612,7 @@ export class SchedulerDO extends DurableObject<Env> {
         content: instructionsOverride ?? automation.instructions,
         authorId: automation.created_by,
         source: "automation",
+        agent: automation.agent,
         callbackContext,
       }),
     });

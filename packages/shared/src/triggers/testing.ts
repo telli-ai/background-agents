@@ -107,6 +107,7 @@ export function makeTriggerAutomation(overrides?: Partial<Automation>): Automati
     scheduleCron: null,
     scheduleTz: "UTC",
     model: "anthropic/claude-sonnet-4-6",
+    agent: null,
     reasoningEffort: null,
     enabled: true,
     nextRunAt: null,

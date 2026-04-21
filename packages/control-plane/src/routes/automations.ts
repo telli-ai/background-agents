@@ -175,6 +175,7 @@ async function handleCreateAutomation(
 
   // Validate model
   const model = getValidModelOrDefault(body.model);
+  const agent = body.agent?.trim() ? body.agent.trim() : null;
   const reasoningEffort = resolveReasoningEffort(model, body.reasoningEffort);
   if (body.reasoningEffort !== undefined && body.reasoningEffort !== null && !reasoningEffort) {
     return error("Invalid reasoning effort for selected model", 400);
@@ -228,6 +229,7 @@ async function handleCreateAutomation(
     schedule_cron: body.scheduleCron ?? null,
     schedule_tz: body.scheduleTz ?? "UTC",
     model,
+    agent,
     reasoning_effort: reasoningEffort,
     enabled: 1,
     next_run_at: nextRunAt,
@@ -347,6 +349,8 @@ async function handleUpdateAutomation(
   }
 
   const nextModel = body.model !== undefined ? getValidModelOrDefault(body.model) : existing.model;
+  const nextAgent =
+    body.agent !== undefined ? (body.agent?.trim() ? body.agent.trim() : null) : existing.agent;
   const requestedReasoningEffort = body.reasoningEffort;
   const resolvedReasoningEffort =
     requestedReasoningEffort !== undefined
@@ -370,6 +374,7 @@ async function handleUpdateAutomation(
   if (body.scheduleCron !== undefined) updateFields.schedule_cron = body.scheduleCron;
   if (body.scheduleTz !== undefined) updateFields.schedule_tz = body.scheduleTz;
   if (body.model !== undefined) updateFields.model = nextModel;
+  if (body.agent !== undefined) updateFields.agent = nextAgent;
   if (body.reasoningEffort !== undefined || body.model !== undefined) {
     updateFields.reasoning_effort = resolvedReasoningEffort;
   }
